@@ -25,7 +25,7 @@ namespace Web_Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Team>>> GetTeams()
         {
-            return await _context.Teams.ToListAsync();
+            return await _context.Teams.OrderByDescending(k => k.PointsCount).ThenByDescending(l => l.TeamNRR).ThenByDescending(m => m.TeamName).ToListAsync();
         }
 
         // GET: api/Teams/5
@@ -38,6 +38,8 @@ namespace Web_Api.Controllers
             {
                 return NotFound();
             }
+
+            
 
             return team;
         }

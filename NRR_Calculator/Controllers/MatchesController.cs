@@ -99,29 +99,76 @@ namespace Web_Api.Controllers
             _context.Matches.Add(match1);
             await _context.SaveChangesAsync();
 
-            int[] m1 = _context.Matches.Where(p => p.Team1Id == match.Team1Id).OrderBy(a => a.Team1Id).Select(x => x.Scores1).ToArray();
-            double[] m2 = _context.Matches.Where(p => p.Team1Id == match.Team1Id).OrderBy(a => a.Team1Id).Select(x => x.Over1).ToArray();
-            //IEnumerable<Match> m2 = _context.Matches.Where(p => p.Team2Id == match.Team2Id).OrderBy(a => a.Team2Id).ToArray();
-            int[] m3 = _context.Matches.Where(p => p.Team2Id == match.Team2Id).OrderBy(a => a.Team2Id).Select(x => x.Scores2).ToArray();
-            double[] m4 = _context.Matches.Where(p => p.Team2Id == match.Team2Id).OrderBy(a => a.Team2Id).Select(x => x.Over2).ToArray();
+            team1.MatchsCount += 1;
+            team1.WinsCount += match.Scores1 > match.Scores2 ? 1 : 0;
+            team1.LosesCount += match.Scores1 > match.Scores2 ? 0 : 1;
+            team1.PointsCount += match.Scores1 > match.Scores2 ? 2 : 0;
+
+            team2.MatchsCount += 1;
+            team2.WinsCount += match.Scores1 > match.Scores2 ? 0 : 1;
+            team2.LosesCount += match.Scores1 > match.Scores2 ? 1 : 0;
+            team2.PointsCount += match.Scores1 > match.Scores2 ? 0 : 2;
+
+            int[] a1 = _context.Matches.Where(p => p.Team1Id == match.Team1Id).Select(x => x.Scores1).ToArray();
+            int[] a2 = _context.Matches.Where(p => p.Team2Id == match.Team1Id).Select(x => x.Scores2).ToArray();
+            int[] team1Runs = a1.Concat(a2).ToArray();
+
+            int[] a3 = _context.Matches.Where(p => p.Team1Id == match.Team1Id).Select(x => x.Scores2).ToArray();
+            int[] a4 = _context.Matches.Where(p => p.Team2Id == match.Team1Id).Select(x => x.Scores1).ToArray();
+            int[] team1OppRun = a3.Concat(a4).ToArray();
+
+            double[] a5 = _context.Matches.Where(p => p.Team1Id == match.Team1Id).Select(x => x.Over1).ToArray();
+            double[] a6 = _context.Matches.Where(p => p.Team2Id == match.Team1Id).Select(x => x.Over2).ToArray();
+            double[] team1Overs = a5.Concat(a6).ToArray();
+
+            double[] a7 = _context.Matches.Where(p => p.Team1Id == match.Team1Id).Select(x => x.Over2).ToArray();
+            double[] a8 = _context.Matches.Where(p => p.Team2Id == match.Team1Id).Select(x => x.Over1).ToArray();
+            double[] team1OppOver = a7.Concat(a8).ToArray();
+
+
+            int[] b1 = _context.Matches.Where(p => p.Team2Id == match.Team2Id).Select(x => x.Scores2).ToArray();
+            int[] b2 = _context.Matches.Where(p => p.Team1Id == match.Team2Id).Select(x => x.Scores1).ToArray();
+            int[] team2Runs = b1.Concat(b2).ToArray();
+
+            int[] b3 = _context.Matches.Where(p => p.Team2Id == match.Team2Id).Select(x => x.Scores1).ToArray();
+            int[] b4 = _context.Matches.Where(p => p.Team1Id == match.Team2Id).Select(x => x.Scores2).ToArray();
+            int[] team2OppRuns = b3.Concat(b4).ToArray();
+
+            double[] b5 = _context.Matches.Where(p => p.Team2Id == match.Team2Id).Select(x => x.Over2).ToArray();
+            double[] b6 = _context.Matches.Where(p => p.Team1Id == match.Team2Id).Select(x => x.Over1).ToArray();
+            double[] team2Overs = b5.Concat(b6).ToArray();
+
+            double[] b7 = _context.Matches.Where(p => p.Team2Id == match.Team2Id).Select(x => x.Over1).ToArray();
+            double[] b8 = _context.Matches.Where(p => p.Team1Id == match.Team2Id).Select(x => x.Over2).ToArray();
+            double[] team2OppOver = b7.Concat(b8).ToArray();
 
             var team1TotalScore = 0;
+            var team1OppTotalScore = 0;
             var team1TotalOver = 0.0;
+            var team1OppTotalOver = 0.0;
+
             var team2TotalScore = 0;
+            var team2OppTotalScore = 0;
             var team2TotalOver = 0.0;
-            for (int i = 0; i < m1.Length; i++)
+            var team2OppTotalOver = 0.0;
+
+            for (int i = 0; i < team1Runs.Length; i++)
             {
-                team1TotalScore += m1[i];
-                team1TotalOver += m2[i];
+                team1TotalScore += team1Runs[i];
+                team1OppTotalScore += team1OppRun[i];
+                team1TotalOver += team1Overs[i];
+                team1OppTotalOver += team1OppOver[i];
             }
-            for (int i = 0; i < m3.Length; i++)
+            for (int i = 0; i < team2Runs.Length; i++)
             {
-                team2TotalScore += m3[i];
-                team2TotalOver += m4[i];
+                team2TotalScore += team2Runs[i];
+                team2OppTotalScore += team2OppRuns[i];
+                team2TotalOver += team2Overs[i];
+                team2OppTotalOver += team2OppOver[i];
             }
 
-            team1.TeamNRR = (team1TotalScore / team1TotalOver) - (team2TotalScore / team2TotalOver);
-            team2.TeamNRR = (team2TotalScore / team2TotalOver) - (team1TotalScore / team1TotalOver);
+            team1.TeamNRR = Math.Round((team1TotalScore / team1TotalOver) - (team1OppTotalScore / team1OppTotalOver), 2);
+            team2.TeamNRR = Math.Round((team2TotalScore / team2TotalOver) - (team2OppTotalScore / team2OppTotalOver), 2);
 
             
             _context.Teams.Update(team1);
