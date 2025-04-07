@@ -106,5 +106,51 @@ namespace Web_Api.Controllers
         {
             return _context.Teams.Any(e => e.TeamId == id);
         }
+
+        [HttpPost("recalculate-nrr")]
+        public async Task<ActionResult<IEnumerable<Team>>> RecalculateNRRAndGetTeams()
+        {
+            List<Team> teams =  await _context.Teams.ToListAsync();
+            foreach (var team in teams)
+            {
+                int[] a1 = _context.Matches.Where(p => p.Team1Id == team.TeamId).Select(x => x.Scores1).ToArray();
+                int[] a2 = _context.Matches.Where(p => p.Team2Id == team.TeamId).Select(x => x.Scores2).ToArray();
+                int[] team1Runs = a1.Concat(a2).ToArray();
+
+                int[] a3 = _context.Matches.Where(p => p.Team1Id == team.TeamId).Select(x => x.Scores2).ToArray();
+                int[] a4 = _context.Matches.Where(p => p.Team2Id == team.TeamId).Select(x => x.Scores1).ToArray();
+                int[] team1OppRun = a3.Concat(a4).ToArray();
+
+                double[] a5 = _context.Matches.Where(p => p.Team1Id == team.TeamId).Select(x => x.Over1).ToArray();
+                double[] a6 = _context.Matches.Where(p => p.Team2Id == team.TeamId).Select(x => x.Over2).ToArray();
+                double[] team1Overs = a5.Concat(a6).ToArray();
+
+                double[] a7 = _context.Matches.Where(p => p.Team1Id == team.TeamId).Select(x => x.Over2).ToArray();
+                double[] a8 = _context.Matches.Where(p => p.Team2Id == team.TeamId).Select(x => x.Over1).ToArray();
+                double[] team1OppOver = a7.Concat(a8).ToArray();
+
+                var team1TotalScore = 0;
+                var team1OppTotalScore = 0;
+                var team1TotalOver = 0.0;
+                var team1OppTotalOver = 0.0;
+
+                for (int i = 0; i < team1Runs.Length; i++)
+                {
+                    team1TotalScore += team1Runs[i];
+                    team1OppTotalScore += team1OppRun[i];
+                    team1TotalOver += team1Overs[i];
+                    team1OppTotalOver += team1OppOver[i];
+                }
+
+                team.TeamNRR = Math.Round((team1TotalScore / team1TotalOver) - (team1OppTotalScore / team1OppTotalOver), 2);
+                
+                _context.Teams.Update(team);
+
+                await _context.SaveChangesAsync();
+
+            }
+            return await GetTeams();
+        }
+
     }
 }

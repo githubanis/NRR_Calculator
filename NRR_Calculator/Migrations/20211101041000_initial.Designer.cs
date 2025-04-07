@@ -10,8 +10,8 @@ using Web_Api.Context;
 namespace Web_Api.Migrations
 {
     [DbContext(typeof(MatchContext))]
-    [Migration("20211026094625_Initial")]
-    partial class Initial
+    [Migration("20211101041000_initial")]
+    partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -52,20 +52,10 @@ namespace Web_Api.Migrations
                     b.Property<int>("Team2Id")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TeamId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TeamId1")
-                        .HasColumnType("int");
-
                     b.Property<int>("WinId")
                         .HasColumnType("int");
 
                     b.HasKey("MatchId");
-
-                    b.HasIndex("TeamId");
-
-                    b.HasIndex("TeamId1");
 
                     b.ToTable("Matches");
                 });
@@ -77,33 +67,27 @@ namespace Web_Api.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<int>("LosesCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MatchsCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PointsCount")
+                        .HasColumnType("int");
+
                     b.Property<double>("TeamNRR")
                         .HasColumnType("float");
 
                     b.Property<string>("TeamName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("WinsCount")
+                        .HasColumnType("int");
+
                     b.HasKey("TeamId");
 
                     b.ToTable("Teams");
-                });
-
-            modelBuilder.Entity("Data.Models.Match", b =>
-                {
-                    b.HasOne("Data.Models.Team", null)
-                        .WithMany("AwayScore")
-                        .HasForeignKey("TeamId");
-
-                    b.HasOne("Data.Models.Team", null)
-                        .WithMany("HomeScore")
-                        .HasForeignKey("TeamId1");
-                });
-
-            modelBuilder.Entity("Data.Models.Team", b =>
-                {
-                    b.Navigation("AwayScore");
-
-                    b.Navigation("HomeScore");
                 });
 #pragma warning restore 612, 618
         }
